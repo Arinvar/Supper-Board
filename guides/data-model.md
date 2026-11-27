@@ -4,7 +4,7 @@ The board keeps everything in its artifact database: JSON documents grouped into
 
 ## Collections
 
-### `meals`: the live two-week plan
+### `meals`: the live week plan
 One document per night.
 
 | Field | Type | Notes |
@@ -15,13 +15,12 @@ One document per night.
 | `details` | string | One line under the title |
 | `recipe` | object | `{serves, time, oven?, ingredients: [], steps: [], tip}` |
 | `from` | string | Leftover nights only: the id of the cook meal, which links to its recipe |
-| `thaw` | string | Optional. What to move from freezer to fridge **the night before**, e.g. "the chicken breast (about 2 lb)" |
+| `thaw` | string | Optional. What to move from freezer to fridge **the night before**, e.g. "the chicken thighs (about 400 g)" |
 | `thawDone` | bool | Set when someone taps "Done, it's in the fridge" |
 | `rating` | 0–5 | Set from the stars |
-| `swapOut` | bool | Draft meals only: "Replace this meal" |
 
 ### `draft`
-The proposed next plan, in the same shape as `meals`. The Tuesday task writes it, you review it, and it becomes `meals` once it starts.
+Not used. The Friday task writes the new week straight into `meals`.
 
 ### `history`
 Past meals, kept so ratings add up across plans.
@@ -33,10 +32,10 @@ Past meals, kept so ratings add up across plans.
 `{text, at}`: requests for the next plan, like "more fish" or "busy week of the 20th."
 
 ### `grocery`
-`{text, at}`: quick additions for the next order.
+`{text, at}`: extras for the next shopping list.
 
 ### `staples`
-`{name, group, status, order}`. `status` is `"have"`, `"low"`, or `"unknown"`. "Low" adds the item to the next order.
+`{name, group, status, order}`. `status` is `"have"`, `"low"`, or `"unknown"`. "Low" adds the item to the next shopping list.
 
 ### `freezer`
 `{name, forMeal, at}`: what's in the freezer and what it's for.
@@ -49,31 +48,27 @@ Past meals, kept so ratings add up across plans.
 |---|---|
 | `start`, `end` | Range of the live plan |
 | `guidelines` | Household food rules, which the planner reads every time |
-| `status` | `active` → `drafted` → `approved` → `list_ready` → `ordered` |
-| `pickup` | e.g. "Sun Oct 11, afternoon" |
-| `statusNote` | One-line note shown in the banner, e.g. "38 items. Not approved yet." |
+| `status` | `active` → `list_ready` → `shopped` |
+| `pickup` | Shopping day, e.g. "Sat 28 Nov, morning" |
+| `statusNote` | One-line note shown in the banner, e.g. "24 items on the list." |
 
-**`plan/draft`**
+**`plan/draft`**: this week's shopping list
 
 | Field | Notes |
 |---|---|
-| `start`, `end`, `pickup` | The next plan's range and pickup |
+| `start`, `end`, `pickup` | The week's range and shopping day |
 | `summary` | What's new and what's returning |
 | `prep` | "Freeze on arrival: …" |
 | `groceries` | `[{section, items: []}]` |
-| `orderText` | The final paste-ready list, written Thursday |
-| `orderDocUrl` | Link to the Google Doc copy |
-| `included` | `{grocery: [ids], staples: [ids]}`, cleared when you tap "I placed the order" |
+| `orderText` | The paste-ready list behind **Copy list** |
+| `included` | `{grocery: [ids], staples: [ids]}`, cleared when you tap "Done shopping" |
 
 ## Status flow
 
 ```mermaid
 stateDiagram-v2
   [*] --> active
-  active --> drafted: Tuesday task writes draft
-  drafted --> approved: you tap Approve
-  drafted --> list_ready: Thursday task (not approved yet)
-  approved --> list_ready: Thursday task builds list
-  list_ready --> ordered: you tap "I placed the order"
-  ordered --> active: next Tuesday, draft becomes the live plan
+  active --> list_ready: Friday task writes the week and the list
+  list_ready --> shopped: you tap "Done shopping"
+  shopped --> list_ready: next Friday
 ```
